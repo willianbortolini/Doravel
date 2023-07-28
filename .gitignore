@@ -1,0 +1,16 @@
+# Ignorar arquivos e diretórios gerados pelo Composer
+/vendor/
+/composer.phar
+/composer.lock
+
+# Ignorar arquivos de autoload gerados pelo Composer
+/vendor/autoload.php
+/vendor/composer/
+
+# Ignorar o diretório de cache do Composer
+/.phpunit.result.cache
+/.phpunit.cache
+/.phpunit/
+
+# Ignorar diretório de logs do Monolog (Exemplo específico para a biblioteca Monolog)
+/app.log
