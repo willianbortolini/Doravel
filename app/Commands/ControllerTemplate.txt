@@ -1,0 +1,14 @@
+<?php
+
+namespace app\controllers;
+
+use app\core\Controller;
+use app\util\UtilService;
+use app\models\service\{{ModelName}}Service;
+use app\core\Flash;
+use app\models\service\Service;
+
+class {{ModelName}}Controller extends Controller
+{
+    // Restante do código do controller aqui...
+}

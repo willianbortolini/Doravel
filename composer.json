@@ -1,0 +1,16 @@
+{
+    "name": "willian.bortolini/doravel",
+    "autoload": {
+        "psr-4": {
+            "WillianBortolini\\Doravel\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "willian"
+        }
+    ],
+    "require": {
+        "monolog/monolog": "^2.9"
+    }
+}
