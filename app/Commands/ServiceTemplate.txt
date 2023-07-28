@@ -1,0 +1,45 @@
+<?php
+
+namespace app\models\service;
+
+use app\models\validacao\{{ModelName}}Validacao;
+use app\models\dao\{{ModelName}}Dao;
+use app\util\UtilService;
+
+class {{ModelName}}Service
+{
+    public static function salvar(${{modelName}}, $campo, $tabela)
+    {
+        $validacao = {{ModelName}}Validacao::salvar(${{modelName}});
+        /*global $config_upload;
+        if ($validacao->qtdeErro() <= 0) {          
+                if (isset($_POST["remove_img"]) && $_POST["remove_img"] === "1") {
+                    $existe_imagem = service::get($tabela, $campo, ${{modelName}}->id)->image;
+                    if (isset($existe_imagem) && $existe_imagem != '') {
+                        UtilService::deletarImagens($existe_imagem);
+                    }
+                    ${{modelName}}->image = '';                    
+                } else {
+                    if (isset($_FILES["image"]["name"]) && $_FILES["image"]["error"] === UPLOAD_ERR_OK) {
+                        $existe_imagem = service::get($tabela, $campo, ${{modelName}}->id)->image;
+                        if (isset($existe_imagem) && $existe_imagem != '') {
+                            UtilService::deletarImagens($existe_imagem);
+                        }
+                        ${{modelName}}->image = UtilService::upload("image", $config_upload);
+
+                        if (!${{modelName}}->{"image"}) {
+                            return false;
+                        }
+                    }
+                }
+            
+        }*/
+        return Service::salvar(${{modelName}}, $campo, $validacao->listaErros(), $tabela);
+
+    }  
+
+    public static function excluir($tabela, $campo, $id)
+    {
+        Service::excluir($tabela, $campo, $id);
+    }
+}

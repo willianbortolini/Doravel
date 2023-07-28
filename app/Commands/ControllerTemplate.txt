@@ -10,5 +10,87 @@ use app\models\service\Service;
 
 class {{ModelName}}Controller extends Controller
 {
-    // Restante do código do controller aqui...
+    private $tabela = "{{tableName}}";
+    private $campo = "{{tableName}}_id";
+    private $usuario;
+
+    //verifica se tem usuario logado(somente para telas que exigem)
+    /*public function __construct()
+    {
+        $this->usuario = UtilService::getUsuario();
+        if (!$this->usuario) {
+            $this->redirect(URL_BASE . "login");
+            exit;
+        }
+    }*/
+
+    public function index()
+    {
+        $dados["{{tableName}}"] = {{ModelName}}Service::getEquipmentStore();
+        $dados["view"] = "Equipment/Show";
+        $this->load("templateBootstrap", $dados);
+    }
+
+    public function edit($id)
+    {
+        $dados["{{tableName}}"] = Service::get($this->tabela, $this->campo, $id);
+        $dados["view"] = "{{ModelName}}/Edit";
+        $this->load("templateBootstrap", $dados);
+    }
+
+    public function create()
+    {
+        $dados["{{tableName}}"] = Flash::getForm();
+        $dados["view"] = "{{ModelName}}/Edit";
+        $this->load("templateBootstrap", $dados);
+    }
+
+    public function delete()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['_method']) && $_POST['_method'] === 'DELETE') {
+            $csrfToken = $_POST['csrf_token'];
+            if ($csrfToken === $_SESSION['csrf_token']) {
+                $id = $_POST['id'];
+
+                // Excluir a imagem, se existir
+                /*$existe_imagem = service::get($this->tabela, $this->campo, $id)->image;
+                if (isset($existe_imagem) && $existe_imagem != '') {
+                    UtilService::deletarImagens($existe_imagem);
+                }*/
+
+                // Excluir
+                {{ModelName}}Service::excluir($this->tabela, $this->campo, $id);
+            }
+        }
+    }
+
+    public function save()
+    {
+        $csrfToken = $_POST['csrf_token'];
+        if ($csrfToken === $_SESSION['csrf_token']) {
+            ${{modelName}} = new \stdClass();
+            if ($_SERVER["REQUEST_METHOD"] === "POST") {
+                if (isset($_POST["{{tableName}}_id"]))
+                    ${{modelName}}->{{tableName}}_id = $_POST["{{tableName}}_id"];
+                
+            }
+
+            if (isset(${{modelName}}->{{tableName}}_id)) {
+                ${{modelName}}->stores_id = $_SESSION['store'];
+            }
+
+            Flash::setForm(${{modelName}});
+            if ({{ModelName}}Service::salvar(${{modelName}}, $this->campo, $this->tabela) > 1) //se é maior que um inseriu novo 
+            {
+                $this->redirect(URL_BASE . "{{ModelName}}");
+            } else {
+                if (!${{modelName}}->{{tableName}}_id) {
+                    $this->redirect(URL_BASE . "{{ModelName}}/create");
+                } else {
+                    $this->redirect(URL_BASE . "{{ModelName}}/edit/" . ${{modelName}}->{{tableName}}_id);
+                }
+            }
+        }
+    }
+
 }
