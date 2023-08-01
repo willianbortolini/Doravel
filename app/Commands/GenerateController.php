@@ -25,6 +25,9 @@ class GenerateController
         // Loop para gerar os inputs HTML dinamicamente e substituir os marcadores no template
         $inputCode = '';
         $showCode = '';
+        $fieldDoController = '';
+        $validacaoField = '';
+        $excluiImagem = '';
         $temImg = false;
         $titulos = "";
         foreach ($fields as $input) {
@@ -34,6 +37,18 @@ class GenerateController
             
             if ($inputType == 'img'){
                 $temImg = true;
+
+                //exclui imagem controller
+                $excluiImagem .= "                \$existe_imagem = service::get(\$this->tabela, \$this->campo, \$id)->$fieldName;\n";
+                $excluiImagem .= "                if (isset(\$existe_imagem) && \$existe_imagem != '') {\n";
+                $excluiImagem .= "                    UtilService::deletarImagens(\$existe_imagem);\n";
+                $excluiImagem .= "                }\n";
+            }else{
+                $fieldDoController .= "                if (isset(\$_POST[\"$fieldName\"]))\n";
+                $fieldDoController .= "                   \${{modelName}}->{$fieldName} = \$_POST[\"$fieldName\"];\n";
+           
+                //validação
+                $validacaoField .= "        \$validacao->setData(\"$fieldName\", \${{modelName}}->$fieldName, \"$labelText\");\n";
             }
             // Cria o input conforme o tipo
             
@@ -115,20 +130,38 @@ class GenerateController
         if ($temImg) {
             $cssImg = "<style>\n.exclusao-ativa img { opacity: 0.3;} \n</style>";
             $jsImg .= "<script src=\"<?php echo URL_BASE ?>assets/js/inputImg.js\"></script>";
-        }
+        }       
 
-       
-
-        //centroller
+        //controller
         // Replace placeholders in the controller template with actual values
         $template = file_get_contents(__DIR__ . '/ControllerTemplate.txt');
+        $template = str_replace('{{excluiImagem}}', $excluiImagem, $template);
+        $template = str_replace('{{fieldDoController}}', $fieldDoController, $template);
         $template = str_replace('{{ModelName}}', $ModelName, $template);
         $template = str_replace('{{modelName}}', $modelName, $template);
         $template = str_replace('{{tableName}}', $tableName, $template);
-
         // Create the controller file
         $controllerFileName = ucfirst($ModelName) . 'Controller.php';
         file_put_contents(__DIR__ . '/../../controllers/' . $controllerFileName, $template);
+
+        //Validacao
+        // Replace placeholders in the controller template with actual values
+        $template = file_get_contents(__DIR__ . '/ValidacaoTemplate.txt');
+        $template = str_replace('{{validacaoField}}', $validacaoField, $template);
+        $template = str_replace('{{ModelName}}', $ModelName, $template);
+        $template = str_replace('{{modelName}}', $modelName, $template);
+        $template = str_replace('{{tableName}}', $tableName, $template);
+        // Create the controller file
+        $validacaoFileName = ucfirst($ModelName) . 'Validacao.php';
+        file_put_contents(__DIR__ . '/../../models/validacao/' . $validacaoFileName, $template);    
+        
+        //Dao
+        // Replace placeholders in the controller template with actual values
+        $template = file_get_contents(__DIR__ . '/DaoTemplate.txt');
+        $template = str_replace('{{ModelName}}', $ModelName, $template);
+        // Create the controller file
+        $daoFileName = ucfirst($ModelName) . 'Dao.php';
+        file_put_contents(__DIR__ . '/../../models/dao/' . $daoFileName, $template);  
 
         //--service
         // Replace placeholders in the service template with actual values
@@ -139,7 +172,7 @@ class GenerateController
 
         // Create the service file
         $serviceFileName = ucfirst($modelName) . 'Service.php';
-        file_put_contents(__DIR__ . '/../../services/' . $serviceFileName, $template);        
+        file_put_contents(__DIR__ . '/../../models/services/' . $serviceFileName, $template);        
 
         //--views
         // Create the directory for the model views

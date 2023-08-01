@@ -51,12 +51,16 @@ class EquipmentController extends Controller
             $csrfToken = $_POST['csrf_token'];
             if ($csrfToken === $_SESSION['csrf_token']) {
                 $id = $_POST['id'];
-
-                // Excluir a imagem, se existir
-                /*$existe_imagem = service::get($this->tabela, $this->campo, $id)->image;
+                
+                // Excluir a imagem, se existir               
+                $existe_imagem = service::get($this->tabela, $this->campo, $id)->img1;
                 if (isset($existe_imagem) && $existe_imagem != '') {
                     UtilService::deletarImagens($existe_imagem);
-                }*/
+                }
+                $existe_imagem = service::get($this->tabela, $this->campo, $id)->img2;
+                if (isset($existe_imagem) && $existe_imagem != '') {
+                    UtilService::deletarImagens($existe_imagem);
+                }
 
                 // Excluir
                 EquipmentService::excluir($this->tabela, $this->campo, $id);
@@ -72,6 +76,14 @@ class EquipmentController extends Controller
             if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 if (isset($_POST["equipments_id"]))
                     $equipment->equipments_id = $_POST["equipments_id"];
+                if (isset($_POST["equipments_name"]))
+                   $equipment->equipments_name = $_POST["equipments_name"];
+                if (isset($_POST["description"]))
+                   $equipment->description = $_POST["description"];
+                if (isset($_POST["price_per_day"]))
+                   $equipment->price_per_day = $_POST["price_per_day"];
+                if (isset($_POST["availabilities"]))
+                   $equipment->availabilities = $_POST["availabilities"];
                 
             }
 
