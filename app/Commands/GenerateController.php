@@ -142,7 +142,7 @@ class GenerateController
         $template = str_replace('{{tableName}}', $tableName, $template);
         // Create the controller file
         $controllerFileName = ucfirst($ModelName) . 'Controller.php';
-        file_put_contents(__DIR__ . '/../../controllers/' . $controllerFileName, $template);
+        file_put_contents(__DIR__ . '/../controllers/' . $controllerFileName, $template);
 
         //Validacao
         // Replace placeholders in the controller template with actual values
@@ -153,7 +153,7 @@ class GenerateController
         $template = str_replace('{{tableName}}', $tableName, $template);
         // Create the controller file
         $validacaoFileName = ucfirst($ModelName) . 'Validacao.php';
-        file_put_contents(__DIR__ . '/../../models/validacao/' . $validacaoFileName, $template);    
+        file_put_contents(__DIR__ . '/../models/validacao/' . $validacaoFileName, $template);    
         
         //Dao
         // Replace placeholders in the controller template with actual values
@@ -161,7 +161,7 @@ class GenerateController
         $template = str_replace('{{ModelName}}', $ModelName, $template);
         // Create the controller file
         $daoFileName = ucfirst($ModelName) . 'Dao.php';
-        file_put_contents(__DIR__ . '/../../models/dao/' . $daoFileName, $template);  
+        file_put_contents(__DIR__ . '/../models/dao/' . $daoFileName, $template);  
 
         //--service
         // Replace placeholders in the service template with actual values
@@ -172,11 +172,11 @@ class GenerateController
 
         // Create the service file
         $serviceFileName = ucfirst($modelName) . 'Service.php';
-        file_put_contents(__DIR__ . '/../../models/services/' . $serviceFileName, $template);        
+        file_put_contents(__DIR__ . '/../models/services/' . $serviceFileName, $template);        
 
         //--views
         // Create the directory for the model views
-        $viewsDir = __DIR__ . '/../../views/' . $ModelName;
+        $viewsDir = __DIR__ . '/../views/' . $ModelName;
         if (!is_dir($viewsDir)) {
             mkdir($viewsDir);
         }
