@@ -1,54 +1,175 @@
 <?php
 
 namespace app\Commands;
+
 use LDAP\Result;
 
 class GenerateController
 {
-    private $modelName;
-    private $ModelName;
-    private $modelNames;
-    private $tableName;
-    private $fields;
-
-    public function __construct($modelName, $tableName, $fields)
+    public function __construct()
     {
-        $this->modelName = lcfirst($modelName);
-        $this->ModelName = ucfirst($modelName);
-        $this->tableName = $tableName;
-        $this->fields = explode(',', $fields);
+
     }
 
-    public function generate()
+    public function generate($name, $modelName, $tableName, $fields)
     {
+        $modelName = lcfirst($modelName);
+        $ModelName = ucfirst($modelName);
+
         // Check if the controller already exists
-        /*$controllerFileName = ucfirst($this->modelName) . 'Controller.php';
+        /*$controllerFileName = ucfirst($modelName) . 'Controller.php';
         if (file_exists(__DIR__ . '/../../controllers/' . $controllerFileName)) {
-            return "Controller '$this->modelName' already exists.";
+            return "Controller '$modelName' already exists.";
         }*/
 
+        // Loop para gerar os inputs HTML dinamicamente e substituir os marcadores no template
+        $inputCode = '';
+        $showCode = '';
+        $temImg = false;
+        $titulos = "";
+        foreach ($fields as $input) {
+            $fieldName = $input['name']; 
+            $inputType = $input['type']; 
+            $labelText = $input['label'];            
+            
+            if ($inputType == 'img'){
+                $temImg = true;
+            }
+            // Cria o input conforme o tipo
+            
+            $titulos .= "                        <th>$labelText</th>\n";
+
+            if ($inputType === 'textarea') {
+                $inputCode .= "    <div class=\"form-group mb-2\">\n";
+                $inputCode .= "        <label for=\"{$fieldName}\">{$labelText}</label>\n";
+                $inputCode .= "        <textarea class=\"form-control\" id=\"{$fieldName}\" name=\"{$fieldName}\" rows=\"5\"\n";
+                $inputCode .= "        required><?php echo (isset(\${{tableName}}->{$fieldName})) ? \${{tableName}}->{$fieldName} : ''; ?></textarea>\n";
+                $inputCode .= "    </div>\n\n";
+                
+                $showCode .= "                            <td>\n";
+                $showCode .= "                                <?php echo \${{tableName}}->{$fieldName}; ?>\n";
+                $showCode .= "                            </td>\n";
+            } elseif ($inputType === 'select') { 
+                $inputCode .= "    <div class=\"form-group mb-2\">\n";
+                $inputCode .= "        <label for=\"{$fieldName}_id\">{$labelText}</label>\n";
+                $inputCode .= "        <select class=\"form-select\" aria-label=\"Default select example\" name=\"{$fieldName}_id\">\n";
+                $inputCode .= "            <?php foreach (\${$fieldName} as \$item) {\n";
+                $inputCode .= "                echo \"<option value='\$item->{$fieldName}_id'\". (\$item->{$fieldName}_id == \${{tableName}}->{$fieldName}_id ? \"selected\" : \"\") . \">\$item->{$fieldName}_name</option>\";\n";
+                $inputCode .= "            } ?>\n";
+                $inputCode .= "        </select>\n";
+                $inputCode .= "    </div>\n\n"; 
+                
+                $showCode .= "                            <td>\n";
+                $showCode .= "                                <?php echo \${{tableName}}->{$fieldName}_name; ?>\n";
+                $showCode .= "                            </td>\n";
+            } elseif ($inputType === 'img') { 
+                $inputCode .= "    <div class=\"row\">\n"; 
+                $inputCode .= "        <div class=\"form-group col-lg-6 col-12 mb-2\">\n"; 
+                $inputCode .= "           <?php if (isset(\${{tableName}}->{$fieldName}) && \${{tableName}}->{$fieldName} != '') { ?>\n"; 
+                $inputCode .= "                <label class=\"container-imagem\" for=\"{$fieldName}\">\n"; 
+                $inputCode .= "                    <img id=\"preview\"  width=\"250\" height=\"250\"\n";
+                $inputCode .= "                        src=\"<?php echo (isset(\${{tableName}}->{$fieldName})) ? (URL_IMAGEM . \${{tableName}}->{$fieldName}) : ''; ?>\">\n";
+                $inputCode .= "                </label>\n";
+                $inputCode .= "                <div class=\"image-buttons mt-1 mb-1\">\n";
+                $inputCode .= "                   <button type=\"button\" class=\"btn btn-primary btn-edit\" data-target=\"{$fieldName}\">Editar</button>\n";
+                $inputCode .= "                   <button type=\"button\" class=\"btn btn-danger btn-delete ms-2\" data-target=\"remove_img\">Excluir</button>\n";
+                $inputCode .= "                   <input type=\"checkbox\" class=\"form-check-input visually-hidden\" id=\"remove_img\" name=\"remove_img\"\n";
+                $inputCode .= "                       value=\"1\">\n";
+                $inputCode .= "                </div>\n";
+                $inputCode .= "            <?php } else { ?>\n";
+                $inputCode .= "                <label class=\"container-imagem\" for=\"{$fieldName}\">\n";
+                $inputCode .= "                    <svg class=\"bd-placeholder-img \" width=\"250\" height=\"250\" role=\"img\" focusable=\"false\">\n";
+                $inputCode .= "                        <rect width=\"100%\" height=\"100%\" fill=\"#868e96\"></rect>\n";
+                $inputCode .= "                        <text x=\"10%\" y=\"50%\" fill=\"#dee2e6\" dy=\".3em\">Carregue uma imagem</text>\n";
+                $inputCode .= "                    </svg>\n";
+                $inputCode .= "                </label>\n";
+                $inputCode .= "            <?php } ?>\n";
+                $inputCode .= "            <input type=\"file\" class=\"form-control-file visually-hidden\" id=\"{$fieldName}\" name=\"{$fieldName}\">\n";
+                $inputCode .= "        </div>\n";
+                $inputCode .= "    </div>\n\n";
+
+                $showCode .= "                            <td>\n";
+                $showCode .= "                                <?php if (isset(\${{tableName}}->{$fieldName})) { ?>\n";
+                $showCode .= "                                    <img class=\"img-thumbnail\" width=\"300\" src=\"<?php echo (URL_IMAGEM . \${{tableName}}->{$fieldName}) ?>\">\n";
+                $showCode .= "                                <?php } ?>\n";
+                $showCode .= "                            </td>\n";
+              
+            } else {
+                // Para os demais tipos, como text, number, datetime-local, etc.   
+                $inputCode .= "    <div class=\"form-group mb-2\">\n";
+                $inputCode .= "        <label for=\"{$fieldName}\">{$labelText}</label>\n";
+                $inputCode .= "        <input type=\"{$inputType}\" class=\"form-control\" id=\"{$fieldName}\" name=\"{$fieldName}\"\n";
+                $inputCode .= "        value=\"<?php echo (isset(\${{tableName}}->{$fieldName})) ? \${{tableName}}->{$fieldName} : ''; ?>\" required>\n";
+                $inputCode .= "    </div>\n\n";
+
+                $showCode .= "                            <td>\n";
+                $showCode .= "                                <?php echo \${{tableName}}->{$fieldName}; ?>\n";
+                $showCode .= "                            </td>\n";
+            }
+
+        }       
+
+        //se algum field é de imagem
+        $cssImg = "";
+        $jsImg = "";
+        if ($temImg) {
+            $cssImg = "<style>\n.exclusao-ativa img { opacity: 0.3;} \n</style>";
+            $jsImg .= "<script src=\"<?php echo URL_BASE ?>assets/js/inputImg.js\"></script>";
+        }
+
+       
 
         //centroller
         // Replace placeholders in the controller template with actual values
         $template = file_get_contents(__DIR__ . '/ControllerTemplate.txt');
-        $template = str_replace('{{ModelName}}', $this->ModelName, $template);   
-        $template = str_replace('{{modelName}}', $this->modelName, $template);
-        $template = str_replace('{{tableName}}', $this->tableName, $template);      
+        $template = str_replace('{{ModelName}}', $ModelName, $template);
+        $template = str_replace('{{modelName}}', $modelName, $template);
+        $template = str_replace('{{tableName}}', $tableName, $template);
 
         // Create the controller file
-        $controllerFileName = ucfirst($this->ModelName) . 'Controller.php';
-        file_put_contents(__DIR__ . '/../../controllers/' . $controllerFileName, $template);        
+        $controllerFileName = ucfirst($ModelName) . 'Controller.php';
+        file_put_contents(__DIR__ . '/../../controllers/' . $controllerFileName, $template);
 
         //--service
         // Replace placeholders in the service template with actual values
         $template = file_get_contents(__DIR__ . '/ServiceTemplate.txt');
-        $template = str_replace('{{ModelName}}', $this->ModelName, $template);   
-        $template = str_replace('{{modelName}}', $this->modelName, $template);
-        $template = str_replace('{{tableName}}', $this->tableName, $template); 
+        $template = str_replace('{{ModelName}}', $ModelName, $template);
+        $template = str_replace('{{modelName}}', $modelName, $template);
+        $template = str_replace('{{tableName}}', $tableName, $template);
 
         // Create the service file
-        $serviceFileName = ucfirst($this->modelName) . 'Service.php';
-        file_put_contents(__DIR__ . '/../../services/' . $serviceFileName, $template);
+        $serviceFileName = ucfirst($modelName) . 'Service.php';
+        file_put_contents(__DIR__ . '/../../services/' . $serviceFileName, $template);        
+
+        //--views
+        // Create the directory for the model views
+        $viewsDir = __DIR__ . '/../../views/' . $ModelName;
+        if (!is_dir($viewsDir)) {
+            mkdir($viewsDir);
+        }
+        // View Edit generation
+        $viewEdit = file_get_contents(__DIR__ . '/ViewEditTemplate.txt');          
+        $viewEdit = str_replace('{{cssImg}}', $cssImg, $viewEdit);
+        $viewEdit = str_replace('{{jsImg}}', $jsImg, $viewEdit);
+        $viewEdit = str_replace('{{field}}', $inputCode, $viewEdit);
+        $viewEdit = str_replace('{{ModelName}}', $ModelName, $viewEdit);
+        $viewEdit = str_replace('{{modelName}}', $modelName, $viewEdit);
+        $viewEdit = str_replace('{{tableName}}', $tableName, $viewEdit);
+        $viewEdit = str_replace('{{name}}', $name, $viewEdit);
+
+        $viewEditPath = $viewsDir . '/Edit.php';
+        file_put_contents($viewEditPath, $viewEdit);
+        // View Show generation        
+        $viewShow = file_get_contents(__DIR__ . '/ViewShowTemplate.txt');
+        $viewShow = str_replace('{{titulos}}', $titulos, $viewShow);
+        $viewShow = str_replace('{{td}} ', $showCode, $viewShow);
+        $viewShow = str_replace('{{ModelName}}', $ModelName, $viewShow);
+        $viewShow = str_replace('{{modelName}}', $modelName, $viewShow);
+        $viewShow = str_replace('{{tableName}}', $tableName, $viewShow);        
+        $viewShow = str_replace('{{name}}', $name, $viewShow);
+        $viewShowPath = $viewsDir . '/Show.php';
+        file_put_contents($viewShowPath, $viewShow);
+
         return $serviceFileName;
     }
 }
